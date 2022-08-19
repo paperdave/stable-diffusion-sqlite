@@ -1,0 +1,7 @@
+{
+  "private": true,
+  "dependencies": {
+    "better-sqlite3": "^7.6.2",
+    "bun-types": "^0.1.8"
+  }
+}
