@@ -13,9 +13,9 @@ if (existsSync("ImageLinks.db-journal")) {
 const stream = Bun.file("ImageLinks.txt").stream();
 const db = new Database("ImageLinks.db", { create: true, readwrite: true });
 
-db.exec(`CREATE TABLE IF NOT EXISTS prompts(id INT, prompt TEXT)`);
+db.exec(`CREATE TABLE IF NOT EXISTS prompts(id INT PRIMARY KEY, prompt TEXT)`);
 db.exec(
-  `CREATE TABLE data(id INT, promptid INT, url TEXT, timestamp INT, height INT, width INT, cfgscale FLOAT, num INT, grid TINYINT, steps INT, seed INT)`
+  `CREATE TABLE data(id INT PRIMARY KEY, promptid INT, url TEXT, timestamp INT, height INT, width INT, cfgscale FLOAT, num INT, grid TINYINT, steps INT, seed INT)`
 );
 
 const insertPrompt = db.prepare(
@@ -93,6 +93,8 @@ do {
 if (carry.length > 0) {
   transation([carry]);
 }
+
+db.exec(`CREATE INDEX IF NOT EXISTS data_promptid_idx ON data(promptid)`);
 
 const end = performance.now();
 
