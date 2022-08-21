@@ -82,7 +82,7 @@ const decoder = new TextDecoder();
 
 let carry = "";
 
-const stream = createReadStream("ImageLinks.txt");
+const stream = createReadStream("ImageLinksFinal.txt");
 stream.on("data", (data) => {
   const current = (carry + decoder.decode(data)).replace(/\r/g, "").split("\n");
   carry = current.pop();
