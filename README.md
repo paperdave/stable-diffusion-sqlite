@@ -7,11 +7,9 @@ Structure of the database is two tables:
 - `prompts`, with a primary key `id` and a string `prompt`
 - `data` which has a `promptId` and a `url`, among extra metadata columns
 
-The converter is written using Node.js and better-sqlite3, and took 162 seconds to convert on my desktop.
+The converter is written using Bun and it's `bun:sqlite` built in. I also wrote it so it can use nodejs and `better-sqlite`. They both take about took 45 seconds to convert on my desktop.
 
-There is also an implementation with Bun, but it doesn't work for me due to a bug. Were it to work, it would run over 3x faster than the node implementation.
-
-To run, you need an extracted copy of [ImageLinksFinal.zip](https://drive.google.com/file/d/14_CRrWMw20OSSd5ZA-7epXdWF3DlwM8g/view) (2.5gb). Then you can run `bun convert.ts` or `node convert.mjs`.
+To run, you need an extracted copy of [ImageLinksFinal.zip](https://drive.google.com/file/d/14_CRrWMw20OSSd5ZA-7epXdWF3DlwM8g/view) (2.5gb). Then you can run `bun convert.mjs` or `node convert.mjs`.
 
 Maybe in the future, a web app / public web api will be made to query the database without storing a local copy. I could do this but I wouldn't be able to fund a server to hold the database (ideally use postgres instead of sqlite).
 
@@ -20,6 +18,7 @@ Maybe in the future, a web app / public web api will be made to query the databa
 ## 2022-08-21
 
 - Update db download with `ImageLinksFinal.txt`, which has "+622,709 prompts / +380,355 unique prompts compared to the last scrape
+- Program performance imrpoved by ~3x
 
 ## 2022-08-20
 

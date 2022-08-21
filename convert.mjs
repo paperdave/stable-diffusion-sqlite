@@ -1,5 +1,8 @@
-import Database from "better-sqlite3";
-import { unlinkSync, existsSync, createReadStream } from "fs";
+import { unlinkSync, existsSync, openSync, readSync } from "fs";
+
+const Database = process.isBun
+  ? (await import("bun:sqlite")).Database
+  : (await import("better-sqlite3")).default;
 
 const start = performance.now();
 
@@ -34,8 +37,8 @@ let dataId = 0;
 let num = 0;
 let lastCheckPointAt = performance.now();
 
-const transation = db.transaction((current) => {
-  for (const line of current) {
+const transation = db.transaction(() => {
+  function doLine(line) {
     // Checkpoint
     num++;
     if (num % 100000 === 0) {
@@ -76,30 +79,40 @@ const transation = db.transaction((current) => {
       }
     }
   }
-});
 
-const decoder = new TextDecoder();
+  const decoder = new TextDecoder();
 
-let carry = "";
+  let carry = "";
 
-const stream = createReadStream("ImageLinksFinal.txt");
-stream.on("data", (data) => {
-  const current = (carry + decoder.decode(data)).replace(/\r/g, "").split("\n");
-  carry = current.pop();
+  const fd = openSync("ImageLinksFinal.txt");
+  const buffer = new Uint8Array(128 * 1024); // 1MB
 
-  transation(current);
-});
+  while (true) {
+    const bytes = readSync(fd, buffer, 0, buffer.length, null);
+    if (bytes === 0) {
+      break;
+    }
+    const lines = (carry + decoder.decode(buffer.subarray(0, bytes))).split(
+      "\n"
+    );
+    carry = lines.pop();
 
-stream.on("end", () => {
-  if (carry.length > 0) {
-    transation([carry]);
+    for (const line of lines) {
+      doLine(line);
+    }
   }
 
-  db.exec(`CREATE INDEX IF NOT EXISTS data_promptid_idx ON data(promptid)`);
-
-  const end = performance.now();
-
-  console.log(
-    "Entire operation took " + ((end - start) / 1000).toFixed(2) + " seconds"
-  );
+  if (carry.length > 0) {
+    doLine(carry);
+  }
 });
+
+transation();
+
+db.exec(`CREATE INDEX IF NOT EXISTS data_promptid_idx ON data(promptid)`);
+
+const end = performance.now();
+
+console.log(
+  "Entire operation took " + ((end - start) / 1000).toFixed(2) + " seconds"
+);
